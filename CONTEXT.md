@@ -101,7 +101,7 @@ Response: { message, homeLatitude, homeLongitude }
 
 ```
 movilTravelCompanion.sln
-├── movilTravelCompanion/              (proyecto MAUI, target: net9.0-android)
+├── movilTravelCompanion/              (proyecto MAUI, target: net10.0-android)
 │   ├── Views/
 │   │   ├── HomePage.xaml
 │   │   ├── LoginPage.xaml
@@ -133,7 +133,7 @@ movilTravelCompanion.sln
 
 ## Decisiones ya tomadas
 - Arquitectura: **MVVM** con `CommunityToolkit.Mvvm`.
-- Solo target Android — `.csproj` limitado a `net9.0-android` (ajustar versión de .NET según la instalada).
+- Solo target Android — `.csproj` limitado a `net10.0-android`.
 - Separación estricta: la UI (proyecto MAUI) no contiene lógica de negocio; toda lógica y llamadas HTTP viven en `movilTravelCompanion.Core`.
 - `.gitignore` ya creado en el repo destino (estándar .NET MAUI, incluye exclusión de `.env`/`secrets.json` por si se maneja alguna clave sensible del lado cliente).
 
@@ -145,16 +145,16 @@ Sin experiencia previa en C#/OOP. Se requiere explicación de conceptos nuevos a
 - [x] `.gitignore` creado
 - [x] Alcance de v1 definido (sin recomendación OpenAI)
 - [x] Estrategia de networking definida (10.0.2.2 / IP LAN)
-- [ ] Crear proyecto `movilTravelCompanion.Core` (class library)
-- [ ] Definir modelos (`User`, `WeatherData`, `HourlyForecast`, `HistoryEntry`)
-- [ ] Implementar `WeatherApiService` (HttpClient consumiendo el backend Express)
-- [ ] Implementar `AuthService`
+- [x] Crear proyecto `movilTravelCompanion.Core` (class library)
+- [x] Definir modelos (`User`, `WeatherData`, `HourlyForecast`, `HistoryEntry`)
+- [x] Implementar `WeatherApiService` (HttpClient consumiendo el backend Express)
+- [x] Implementar `AuthService`
+- [x] Configurar inyección de dependencias en `MauiProgram.cs`
 - [ ] Implementar manejo de sesión con `Preferences`/`SecureStorage`
 - [ ] Construir Views + ViewModels (Home, Login, Register, RegistrationSuccess, TravelDestination, Dashboard)
 - [ ] Configurar navegación (Shell) entre páginas
-- [ ] Configurar inyección de dependencias en `MauiProgram.cs`
 - [ ] Probar en emulador Android
 - [ ] Probar en dispositivo físico Android
 
 ## Siguiente paso concreto
-Crear la librería `movilTravelCompanion.Core` (class library de .NET) dentro de la solución, y definir ahí los modelos (`User`, `WeatherData`, `HourlyForecast`, `HistoryEntry`) basados en las respuestas JSON documentadas arriba. Este es el punto de partida porque no depende de UI ni de MAUI — es lógica pura de C#, ideal para aprender los conceptos base antes de meterse con XAML.
+Crear las Views + ViewModels en el proyecto MAUI, empezando por `LoginPage.xaml` + `LoginViewModel.cs` (consumiendo `IAuthService.LoginAsync`, ya registrado en `MauiProgram.cs`). Es el primer punto donde se junta MVVM con data binding real: la Vista (XAML) se enlaza a propiedades del ViewModel, y el ViewModel llama a los servicios de `movilTravelCompanion.Core`.
