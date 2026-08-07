@@ -150,11 +150,16 @@ Sin experiencia previa en C#/OOP. Se requiere explicación de conceptos nuevos a
 - [x] Implementar `WeatherApiService` (HttpClient consumiendo el backend Express)
 - [x] Implementar `AuthService`
 - [x] Configurar inyección de dependencias en `MauiProgram.cs`
+- [x] Construir `LoginPage.xaml` + `LoginViewModel` (confirmado corriendo el `.apk` manualmente vía `adb install` en el emulador Pixel 10a API 37)
+- [ ] Construir Views + ViewModels restantes (Home, Register, RegistrationSuccess, TravelDestination, Dashboard)
 - [ ] Implementar manejo de sesión con `Preferences`/`SecureStorage`
-- [ ] Construir Views + ViewModels (Home, Login, Register, RegistrationSuccess, TravelDestination, Dashboard)
 - [ ] Configurar navegación (Shell) entre páginas
 - [ ] Probar en emulador Android
 - [ ] Probar en dispositivo físico Android
 
+## Notas técnicas / troubleshooting
+- **`dotnet build -t:Run` falla con MSB3072/MSB6011** en este entorno (causa aún no confirmada). Alternativa que sí funciona: compilar con `dotnet build`, ubicar el `.apk` generado en `movilTravelCompanion/bin/Debug/net10.0-android/`, e instalarlo manualmente con `adb install -r <path-al-Signed.apk>`.
+- **`launch.json` / `tasks.json`** requirieron configuración manual — F5 daba "No launchable projects found" porque a `launch.json` le faltaba la propiedad `"project"` apuntando al `.csproj` específico del proyecto MAUI (hay 2 proyectos en el workspace) y `tasks.json` no existía (el `preLaunchTask: "maui: Build"` no resolvía a ninguna tarea real). Ya quedaron corregidos ambos archivos, pero **F5 aún no se confirmó funcionando de punta a punta** — pendiente de probar en la próxima sesión.
+
 ## Siguiente paso concreto
-Crear las Views + ViewModels en el proyecto MAUI, empezando por `LoginPage.xaml` + `LoginViewModel.cs` (consumiendo `IAuthService.LoginAsync`, ya registrado en `MauiProgram.cs`). Es el primer punto donde se junta MVVM con data binding real: la Vista (XAML) se enlaza a propiedades del ViewModel, y el ViewModel llama a los servicios de `movilTravelCompanion.Core`.
+Confirmar que F5 (VS Code, con `launch.json`/`tasks.json` ya corregidos) funciona de punta a punta. Si funciona, continuar con `RegisterPage` y `TravelDestinationPage`. Si no, seguir usando el flujo manual de `adb install` mientras se avanza en paralelo con las siguientes páginas.
