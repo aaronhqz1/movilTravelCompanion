@@ -17,7 +17,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("movilTravelCompanion")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+e9d1afe90cf41270fccb9ea1d98f125fa2fae433")]
 [assembly: System.Reflection.AssemblyProductAttribute("movilTravelCompanion")]
 [assembly: System.Reflection.AssemblyTitleAttribute("movilTravelCompanion")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
