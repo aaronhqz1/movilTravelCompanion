@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:movilTravelCompanion.ViewModels"
+             xmlns:controls="clr-namespace:movilTravelCompanion.Controls"
              x:Class="movilTravelCompanion.Views.TravelDestinationPage"
              x:DataType="viewmodels:TravelDestinationViewModel"
              Title="Destino de Viaje">
@@ -42,14 +43,9 @@
                 Spacing="10"
                 IsVisible="{Binding HasResult}">
 
-                <Label
-                    Text="{Binding ResultCity}"
-                    Style="{StaticResource SubHeadline}" />
-
-                <Label
-                    Text="{Binding ResultTemperature}"
-                    HorizontalOptions="Center"
-                    FontSize="20" />
+                <controls:WeatherCardView
+                    CityText="{Binding ResultCity}"
+                    TemperatureText="{Binding ResultTemperature}" />
 
                 <Button
                     Text="Confirmar destino"
