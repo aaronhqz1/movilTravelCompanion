@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:movilTravelCompanion.ViewModels"
+             xmlns:controls="clr-namespace:movilTravelCompanion.Controls"
+             x:Class="movilTravelCompanion.Views.HomePage"
+             x:DataType="viewmodels:HomeViewModel"
+             Title="movilTravelCompanion">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30,0"
+            Spacing="25">
+
+            <Label
+                Text="movilTravelCompanion"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level1" />
+
+            <Label
+                Text="Mirá el clima de una ciudad al azar, o buscá la tuya. Iniciá sesión para guardar tu historial de viajes."
+                HorizontalTextAlignment="Center" />
+
+            <ActivityIndicator
+                IsRunning="{Binding IsLoading}"
+                IsVisible="{Binding IsLoading}" />
+
+            <Label
+                Text="{Binding ErrorMessage}"
+                TextColor="Red" />
+
+            <controls:WeatherCardView
+                IsVisible="{Binding HasResult}"
+                CityText="{Binding ResultCity}"
+                TemperatureText="{Binding ResultTemperature}"
+                DetailsText="{Binding ResultDetails}"
+                ShowDetails="True" />
+
+            <Entry
+                Placeholder="Buscar clima de otra ciudad"
+                Text="{Binding CityQuery}"
+                ReturnCommand="{Binding SearchCommand}" />
+
+            <Button
+                Text="Buscar"
+                Command="{Binding SearchCommand}"
+                HorizontalOptions="Fill" />
+
+            <Button
+                Text="Iniciar Sesión"
+                Command="{Binding GoToLoginCommand}"
+                HorizontalOptions="Fill" />
+
+            <Button
+                Text="Crear cuenta"
+                Command="{Binding GoToRegisterCommand}"
+                BackgroundColor="Transparent"
+                TextColor="{StaticResource Primary}"
+                HorizontalOptions="Fill" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

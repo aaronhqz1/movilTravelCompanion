@@ -52,7 +52,10 @@ public partial class DashboardViewModel : ObservableObject
         _currentUser = _sessionStore.GetUser();
         if (_currentUser is null)
         {
-            await Shell.Current.GoToAsync("//" + nameof(Views.LoginPage));
+            // HomePage es el ShellContent real (la unica ruta valida para navegacion
+            // absoluta "//"); LoginPage es una ruta global y no admite quedar como
+            // unica pagina en la pila.
+            await Shell.Current.GoToAsync("//" + nameof(Views.HomePage));
             return;
         }
 
@@ -113,7 +116,7 @@ public partial class DashboardViewModel : ObservableObject
     private async Task LogoutAsync()
     {
         _sessionStore.ClearUser();
-        await Shell.Current.GoToAsync("//" + nameof(Views.LoginPage));
+        await Shell.Current.GoToAsync("//" + nameof(Views.HomePage));
     }
 
     private async Task ReloadHistoryAsync()

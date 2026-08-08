@@ -12,7 +12,10 @@ public partial class RegistrationSuccessViewModel : ObservableObject
     [RelayCommand]
     private async Task ContinueAsync()
     {
-        // TODO: una vez exista TravelDestinationPage, navegar ahi en lugar de volver al login.
-        await Shell.Current.GoToAsync("//" + nameof(Views.LoginPage));
+        // Push relativo (no "//"): LoginPage es una ruta global (Routing.RegisterRoute
+        // en AppShell.xaml.cs), no el ShellContent (que ahora es HomePage), y Shell no
+        // permite navegacion absoluta a una ruta global si queda como unica pagina en
+        // la pila. El usuario recien registrado debe loguearse antes de continuar.
+        await Shell.Current.GoToAsync(nameof(Views.LoginPage));
     }
 }

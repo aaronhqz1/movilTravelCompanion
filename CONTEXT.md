@@ -114,18 +114,18 @@ movilTravelCompanion.sln
 │   │   ├── RegistrationSuccessPage.xaml
 │   │   ├── TravelDestinationPage.xaml
 │   │   ├── DashboardPage.xaml
-│   │   └── HomePage.xaml               (pendiente)
+│   │   └── HomePage.xaml
 │   ├── ViewModels/
 │   │   ├── LoginViewModel.cs
 │   │   ├── RegisterViewModel.cs
 │   │   ├── RegistrationSuccessViewModel.cs
 │   │   ├── TravelDestinationViewModel.cs
 │   │   ├── DashboardViewModel.cs
-│   │   └── HomeViewModel.cs            (pendiente)
+│   │   └── HomeViewModel.cs
 │   ├── Services/
 │   │   └── PreferencesSessionStore.cs  (implementación de ISessionStore con Preferences; vive acá y no en Core porque necesita el workload de plataforma)
 │   ├── Controls/
-│   │   └── WeatherCardView.xaml        (pendiente)
+│   │   └── WeatherCardView.xaml / .xaml.cs   (ContentView reutilizable: ciudad + temperatura + detalles opcionales; usado en HomePage, TravelDestinationPage y DashboardPage)
 │   ├── AppShell.xaml / AppShell.xaml.cs
 │   ├── Platforms/
 │   ├── Resources/
@@ -173,11 +173,13 @@ Sin experiencia previa en C#/OOP. Se requiere explicación de conceptos nuevos a
 - [x] Implementar manejo de sesión: `ISessionStore` (interfaz, en Core) + `PreferencesSessionStore` (implementación con `Preferences`, en el proyecto MAUI — Core no puede usar `Preferences` directo porque apunta a `net10.0` puro, sin el workload de plataforma)
 - [x] Construir `TravelDestinationPage.xaml` + `TravelDestinationViewModel` (busca ciudad con `IWeatherApiService`, guarda destino elegido en la sesión, navega a Dashboard)
 - [x] Construir `DashboardPage.xaml` + `DashboardViewModel` (clima del destino al entrar, búsqueda de otra ciudad que se guarda en historial, últimas 3 búsquedas en `CollectionView`, cerrar sesión)
-- [x] `LoginViewModel` ahora guarda la sesión al loguearse y navega a `TravelDestinationPage` (ruta absoluta `"//..."`, resetea la pila de Shell)
-- [ ] Construir `HomePage`/`HomeViewModel` (clima de ciudad aleatoria sin login — no forma parte del flujo login→dashboard, quedó afuera de esta tanda)
+- [x] `LoginViewModel` guarda la sesión al loguearse y navega a `TravelDestinationPage` (push relativo; ver fix de routing más abajo)
 - [x] **Verificado en runtime con datos reales y con el backend corriendo**: flujo completo Register → Login → TravelDestination (buscar Madrid) → Dashboard (buscar París, se guarda en historial) → Cerrar sesión, probado a mano en el emulador Pixel 10a API 37 con `adb`. Requirió corregir dos bugs, ver detalle en "Notas técnicas / troubleshooting" abajo:
   - `android:usesCleartextTraffic="true"` faltante en `AndroidManifest.xml` (causaba "Connection failure" en toda llamada HTTP)
   - Navegación absoluta (`"//"`) rota hacia rutas globales de Shell (`TravelDestinationPage`, `DashboardPage`)
+- [x] Construir `HomePage`/`HomeViewModel` (clima de ciudad aleatoria sin login + búsqueda de ciudad, botones "Iniciar Sesión"/"Crear cuenta"). `HomePage` pasó a ser el `ShellContent` inicial de `AppShell` (antes era `LoginPage`), siguiendo el flujo real de la app original (`home → login → ...`). `LoginPage` pasó a registrarse como ruta global igual que `RegisterPage`. Ver detalle del cambio de entry point y de las navegaciones que hubo que ajustar en "Notas técnicas / troubleshooting" abajo.
+- [x] Creado `Controls/WeatherCardView.xaml` (+ `.xaml.cs`): `ContentView` reutilizable con `BindableProperty` para ciudad/temperatura/detalles, usado ahora en `HomePage`, `TravelDestinationPage` y `DashboardPage` (antes cada página duplicaba el mismo bloque de `Label`s).
+- [x] Verificado en runtime: HomePage abre sin crashear mostrando clima de ciudad aleatoria real, la búsqueda de ciudad funciona, navegación Home↔Login y Home↔Register funciona en ambos sentidos (botón "atrás" del emulador vuelve a Home correctamente), y el flujo completo Login→TravelDestination→Dashboard→Cerrar sesión sigue funcionando tras el cambio de entry point (cerrar sesión ahora vuelve a Home, no a Login).
 - [ ] Probar en dispositivo físico Android
 
 ## Notas técnicas / troubleshooting
@@ -205,11 +207,20 @@ Tenía dos causas superpuestas:
 - Síntoma: tras un login exitoso contra el backend (sin error de conexión ni de credenciales), la app quedaba trabada en `LoginPage` con el error en pantalla: *"Global routes currently cannot be the only page on the stack, so absolute routing to global routes is not supported."*
 - Causa: en `AppShell.xaml`, el único `ShellContent` real es `LoginPage`; `RegisterPage`, `RegistrationSuccessPage`, `TravelDestinationPage` y `DashboardPage` se registran como rutas "sueltas" (`Routing.RegisterRoute` en `AppShell.xaml.cs`), no como `ShellContent`. MAUI Shell no permite navegación absoluta (`"//" + ruta`) hacia una ruta de ese tipo cuando quedaría como única página en la pila.
 - Fix: en `LoginViewModel.cs` (línea ~48) y `TravelDestinationViewModel.cs` (línea ~94), se cambió `Shell.Current.GoToAsync("//" + nameof(Pagina))` por `Shell.Current.GoToAsync(nameof(Pagina))` (push relativo en vez de ruta absoluta). Efecto secundario conocido y aceptado por ahora: el botón "atrás" del dispositivo puede volver a la pantalla anterior (Login o TravelDestination) en vez de cerrar la app directamente.
-- Los `GoToAsync("//" + nameof(LoginPage))` usados en logout (`DashboardViewModel.cs`, `TravelDestinationViewModel.cs`, `RegistrationSuccessViewModel.cs`) **no** se tocaron porque `LoginPage` sí es el `ShellContent` real — se probó "Cerrar sesión" en el emulador y funciona sin problema.
-- Verificado en runtime: flujo completo Login → TravelDestination (buscar Madrid, confirmar) → Dashboard (ver clima de Madrid, buscar París, aparece en historial) → Cerrar sesión (vuelve a Login), probado a mano con `adb` en el emulador Pixel 10a API 37.
+- En esta sesión, los `GoToAsync("//" + nameof(LoginPage))` usados en logout todavía apuntaban a `LoginPage` porque en ese momento **sí** era el `ShellContent` real. Ver la nota siguiente: al mover el `ShellContent` a `HomePage`, estos se volvieron a romper y hubo que corregirlos de nuevo (ahora apuntan a `HomePage`).
+- Verificado en runtime (en esta sesión, antes del cambio de entry point): flujo completo Login → TravelDestination (buscar Madrid, confirmar) → Dashboard (ver clima de Madrid, buscar París, aparece en historial) → Cerrar sesión (en ese momento volvía a Login), probado a mano con `adb` en el emulador Pixel 10a API 37.
+
+### Cambio de entry point: `HomePage` pasa a ser el `ShellContent` inicial (antes era `LoginPage`)
+- Motivo: al construir `HomePage` (clima de ciudad aleatoria sin login), se decidió seguir el flujo real de la app original (`App.jsx`: `home → login → register → ... → dashboard`, ver sección "Alcance de v1" arriba) en vez de dejar `LoginPage` como pantalla de entrada.
+- Cambios en `AppShell.xaml`: el único `ShellContent` ahora es `HomePage` (antes era `LoginPage`).
+- Cambios en `AppShell.xaml.cs`: se agregó `Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage))` — `LoginPage` pasa a ser una ruta global más, igual que `RegisterPage`.
+- Efecto colateral: esto **volvió a romper** los `GoToAsync("//" + nameof(LoginPage))` usados para logout y para los guards de "sesión perdida" (mismo bug de "Global routes currently cannot be the only page on the stack" que ya se había resuelto para `TravelDestinationPage`/`DashboardPage`), porque `LoginPage` dejó de ser el `ShellContent` real. Se corrigieron cambiándolos a `"//" + nameof(HomePage)` (que sí es válido, es el `ShellContent` real) en:
+  - `DashboardViewModel.cs`: guard de sesión perdida y `LogoutAsync()`
+  - `TravelDestinationViewModel.cs`: guard de sesión perdida
+  - `RegistrationSuccessViewModel.cs`: `ContinueAsync()` (este caso es navegación hacia adelante, no reset de stack, así que se cambió a push relativo `GoToAsync(nameof(LoginPage))`, no a `"//HomePage"`)
+- Verificado en runtime: Home abre sin crashear con clima de ciudad aleatoria real, búsqueda funciona, Home↔Login y Home↔Register navegan y vuelven bien con el botón "atrás" del emulador, y el flujo Login→TravelDestination→Dashboard→Cerrar sesión sigue funcionando de punta a punta (cerrar sesión ahora deja al usuario en Home, no en Login).
 
 ## Siguiente paso concreto
-1. Construir `HomePage`/`HomeViewModel` (clima de ciudad aleatoria, pantalla para usuario no logueado).
-2. Terminar de confirmar F5 en VS Code siguiendo los pasos manuales documentados arriba (clic derecho → "Set as Startup Project" en Solution Explorer de C# Dev Kit).
-3. Decidir si el efecto secundario del fix de routing (botón "atrás" volviendo a Login/TravelDestination tras avanzar) necesita resolverse mejor (por ejemplo, limpiando el stack de navegación manualmente o declarando esas páginas como `ShellContent`), o si se deja así para v1.
-4. Probar en dispositivo físico Android.
+1. Terminar de confirmar F5 en VS Code siguiendo los pasos manuales documentados arriba (clic derecho → "Set as Startup Project" en Solution Explorer de C# Dev Kit).
+2. Decidir si el efecto secundario del fix de routing (botón "atrás" volviendo a una pantalla intermedia en vez de salir de la app) necesita resolverse mejor, o si se deja así para v1.
+3. Probar en dispositivo físico Android.

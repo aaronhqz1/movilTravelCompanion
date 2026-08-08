@@ -9,14 +9,15 @@
     Shell.NavBarIsVisible="False">
 
     <!--
-    Unico ShellContent visible: es la pagina raiz del flujo (Login).
-    Las demas paginas (Register, RegistrationSuccess, ...) NO se declaran aca:
+    Unico ShellContent visible: es la pagina raiz del flujo (Home, siguiendo
+    el flujo real de la app original: home -> login -> register -> ... -> dashboard).
+    Las demas paginas (Login, Register, RegistrationSuccess, ...) NO se declaran aca:
     se registran como rutas "sueltas" en AppShell.xaml.cs y se navega a ellas
     con Shell.Current.GoToAsync(...), que las apila como si fuera una
     NavigationPage normal (push/pop), en vez de aparecer como tabs.
     -->
     <ShellContent
-        ContentTemplate="{DataTemplate views:LoginPage}"
-        Route="LoginPage" />
+        ContentTemplate="{DataTemplate views:HomePage}"
+        Route="HomePage" />
 
 </Shell>

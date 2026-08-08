@@ -79,8 +79,10 @@ public partial class TravelDestinationViewModel : ObservableObject
         if (user is null)
         {
             // No deberia pasar (se llega aca solo despues de loguearse), pero si la
-            // sesion se perdio por algun motivo, volvemos al login en vez de crashear.
-            await Shell.Current.GoToAsync("//" + nameof(Views.LoginPage));
+            // sesion se perdio por algun motivo, volvemos a Home en vez de crashear.
+            // HomePage es el ShellContent real; LoginPage es ruta global y no admite
+            // navegacion absoluta "//" como unica pagina en la pila.
+            await Shell.Current.GoToAsync("//" + nameof(Views.HomePage));
             return;
         }
 
