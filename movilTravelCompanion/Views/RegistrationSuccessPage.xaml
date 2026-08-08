@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:movilTravelCompanion.ViewModels"
+             x:Class="movilTravelCompanion.Views.RegistrationSuccessPage"
+             x:DataType="viewmodels:RegistrationSuccessViewModel"
+             Title="¡Listo!">
+
+    <VerticalStackLayout
+        Padding="30,0"
+        Spacing="25"
+        VerticalOptions="Center">
+
+        <Label
+            Text="¡Cuenta creada!"
+            Style="{StaticResource Headline}"
+            SemanticProperties.HeadingLevel="Level1" />
+
+        <Label
+            Text="{Binding Username, StringFormat='Bienvenido, {0}. Tu cuenta se creo correctamente.'}"
+            HorizontalTextAlignment="Center" />
+
+        <Button
+            Text="Continuar"
+            Command="{Binding ContinueCommand}"
+            HorizontalOptions="Fill" />
+
+    </VerticalStackLayout>
+
+</ContentPage>

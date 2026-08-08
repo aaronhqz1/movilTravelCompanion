@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:movilTravelCompanion.ViewModels"
+             xmlns:models="clr-namespace:movilTravelCompanion.Core.Models;assembly=movilTravelCompanion.Core"
+             x:Class="movilTravelCompanion.Views.DashboardPage"
+             x:DataType="viewmodels:DashboardViewModel"
+             Title="Panel">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30,0"
+            Spacing="20">
+
+            <Label
+                Text="{Binding WelcomeMessage}"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level1" />
+
+            <Button
+                Text="Cerrar sesión"
+                Command="{Binding LogoutCommand}"
+                BackgroundColor="Transparent"
+                TextColor="{StaticResource Primary}"
+                HorizontalOptions="Center" />
+
+            <ActivityIndicator
+                IsRunning="{Binding IsLoading}"
+                IsVisible="{Binding IsLoading}" />
+
+            <Label
+                Text="{Binding ErrorMessage}"
+                TextColor="Red" />
+
+            <!-- Clima del destino de viaje elegido -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="{Binding DestinationCity}" Style="{StaticResource SubHeadline}" />
+                <Label Text="{Binding DestinationTemperature}" HorizontalOptions="Center" FontSize="28" />
+                <Label Text="{Binding DestinationDetails}" HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- Buscar el clima de otra ciudad (se guarda en el historial) -->
+            <Entry
+                Placeholder="Buscar clima de otra ciudad"
+                Text="{Binding SearchCityQuery}"
+                ReturnCommand="{Binding SearchCommand}" />
+
+            <Button
+                Text="Buscar"
+                Command="{Binding SearchCommand}"
+                HorizontalOptions="Fill" />
+
+            <!-- Historial: ultimas 3 busquedas -->
+            <Label Text="Historial reciente" Style="{StaticResource SubHeadline}" />
+
+            <CollectionView ItemsSource="{Binding RecentHistory}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:HistoryEntry">
+                        <Grid Padding="0,10" ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="{Binding City}" />
+                            <Label Grid.Column="1" Text="{Binding Temperature, StringFormat='{0:0.#} °C'}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

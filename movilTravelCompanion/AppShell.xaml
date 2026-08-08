@@ -3,12 +3,20 @@
     x:Class="movilTravelCompanion.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:movilTravelCompanion"
-    Title="movilTravelCompanion">
+    xmlns:views="clr-namespace:movilTravelCompanion.Views"
+    Title="movilTravelCompanion"
+    FlyoutBehavior="Disabled"
+    Shell.NavBarIsVisible="False">
 
+    <!--
+    Unico ShellContent visible: es la pagina raiz del flujo (Login).
+    Las demas paginas (Register, RegistrationSuccess, ...) NO se declaran aca:
+    se registran como rutas "sueltas" en AppShell.xaml.cs y se navega a ellas
+    con Shell.Current.GoToAsync(...), que las apila como si fuera una
+    NavigationPage normal (push/pop), en vez de aparecer como tabs.
+    -->
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        ContentTemplate="{DataTemplate views:LoginPage}"
+        Route="LoginPage" />
 
 </Shell>

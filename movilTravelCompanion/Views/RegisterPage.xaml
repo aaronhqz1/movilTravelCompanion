@@ -2,9 +2,9 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:movilTravelCompanion.ViewModels"
-             x:Class="movilTravelCompanion.Views.LoginPage"
-             x:DataType="viewmodels:LoginViewModel"
-             Title="Iniciar Sesión">
+             x:Class="movilTravelCompanion.Views.RegisterPage"
+             x:DataType="viewmodels:RegisterViewModel"
+             Title="Crear Cuenta">
 
     <ScrollView>
         <VerticalStackLayout
@@ -12,7 +12,7 @@
             Spacing="25">
 
             <Label
-                Text="Iniciar Sesión"
+                Text="Crear Cuenta"
                 Style="{StaticResource Headline}"
                 SemanticProperties.HeadingLevel="Level1" />
 
@@ -25,14 +25,23 @@
                 IsPassword="True"
                 Text="{Binding Password}" />
 
+            <Entry
+                Placeholder="Confirmar contraseña"
+                IsPassword="True"
+                Text="{Binding ConfirmPassword}" />
+
+            <Entry
+                Placeholder="Ciudad de origen (opcional)"
+                Text="{Binding HomeCity}" />
+
             <Button
-                Text="Iniciar Sesión"
-                Command="{Binding LoginCommand}"
+                Text="Registrarme"
+                Command="{Binding RegisterCommand}"
                 HorizontalOptions="Fill" />
 
             <Button
-                Text="Crear cuenta"
-                Command="{Binding GoToRegisterCommand}"
+                Text="Ya tengo cuenta"
+                Command="{Binding GoToLoginCommand}"
                 BackgroundColor="Transparent"
                 TextColor="{StaticResource Primary}"
                 HorizontalOptions="Fill" />
