@@ -83,3 +83,7 @@ Desktop.ini
 *.db
 *.sqlite
 *.sqlite3
+
+# Backend (Node.js / Express, copiado localmente en backend/)
+node_modules/
+npm-debug.log*

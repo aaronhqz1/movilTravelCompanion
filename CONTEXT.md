@@ -4,17 +4,23 @@
 Migrar la aplicación web **WeatherApp** (repo original) a una app **.NET MAUI** para **Android únicamente**, reutilizando el backend existente y reescribiendo el frontend como cliente MAUI (C#/XAML, MVVM).
 
 ## Repos
-- **Origen (referencia, no se toca el backend):** https://github.com/aaronhqz1/WeatherApp
+- **Origen (referencia histórica):** https://github.com/aaronhqz1/WeatherApp
 - **Destino (proyecto MAUI en desarrollo):** https://github.com/aaronhqz1/movilTravelCompanion
+
+## Backend: ubicación y edición — DECISIÓN TOMADA
+- El backend Node/Express/SQLite fue **copiado físicamente a `backend/`** en la raíz de este repo (`movilTravelCompanion`), en vez de vivir solo en el repo `WeatherApp` separado.
+- Motivo: ambos repos son propios (mismo dueño, no es una dependencia de un tercero), el backend no tiene desarrollo paralelo activo en `WeatherApp` (es código congelado de referencia), y tenerlo todo en un solo repo elimina el punto de fallo cruzado y reduce la fricción para herramientas de trabajo (Claude Code, búsquedas, etc.) que operan mejor con un solo contexto.
+- **A diferencia de la decisión original, el backend copiado en `backend/` SÍ se puede editar si hace falta** (por ejemplo, para corregir un bug o ajustar un endpoint durante la migración). El repo `WeatherApp` original queda como referencia histórica de dónde vino, pero no es la fuente de la verdad operativa una vez copiado.
+- `node_modules/` del backend está en `.gitignore` (no se commitea); correr `npm install` en `backend/` después de clonar.
 
 ## Stack del proyecto original
 - **Frontend (a reemplazar por MAUI):** React 18.3 + Vite + Axios
-- **Backend (se mantiene tal cual, corre como API REST):** Node.js + Express 4.18 + SQLite3 + bcrypt (factor 12) + CORS
+- **Backend:** Node.js + Express 4.18 + SQLite3 + bcrypt (factor 12) + CORS
 - **APIs externas consumidas:** Open-Meteo (clima) y Geocoding API de Open-Meteo (búsqueda de ciudades) — ambas gratuitas, sin API key
 
 ## Alcance de la migración
-- El backend Node/Express/SQLite **no se reescribe**. MAUI consumirá los mismos endpoints REST vía HTTP, igual que lo hacía React con Axios.
-- Se reescribe **solo el cliente**: de componentes React a Views (XAML) + ViewModels (MVVM) en MAUI.
+- El backend Node/Express/SQLite se reutiliza tal cual vino, con ediciones puntuales permitidas si son necesarias (ver sección "Backend: ubicación y edición" arriba). MAUI consumirá los mismos endpoints REST vía HTTP, igual que lo hacía React con Axios.
+- Se reescribe **el cliente**: de componentes React a Views (XAML) + ViewModels (MVVM) en MAUI.
 - Target exclusivo: **Android** (no se instala workload de iOS, no se requiere Mac).
 
 ## Alcance de v1 (MVP) — DECISIÓN TOMADA
