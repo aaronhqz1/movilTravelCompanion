@@ -1,21 +1,23 @@
-﻿using movilTravelCompanion.Views;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace movilTravelCompanion;
 
 public partial class App : Application
 {
-	private readonly LoginPage _loginPage;
+	private readonly IServiceProvider _serviceProvider;
 
-	// TODO: reemplazar por AppShell cuando se arme la navegación completa.
-	// Por ahora, LoginPage se muestra directamente para poder probarla.
-	public App(LoginPage loginPage)
+	public App(IServiceProvider serviceProvider)
 	{
 		InitializeComponent();
-		_loginPage = loginPage;
+		_serviceProvider = serviceProvider;
 	}
 
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
-		return new Window(_loginPage);
+		// Resolvemos AppShell recién acá (no como parámetro del constructor)
+		// para que Application.Resources ya esté cargado por InitializeComponent
+		// antes de que el XAML de las páginas busque StaticResources como "Headline".
+		var appShell = _serviceProvider.GetRequiredService<AppShell>();
+		return new Window(appShell);
 	}
 }

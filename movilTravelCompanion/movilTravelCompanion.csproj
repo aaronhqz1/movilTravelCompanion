@@ -45,6 +45,16 @@
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
 
+	<!-- Debug builds use Android "Fast Deployment" by default: the .apk ships without the
+	     managed .dlls, which are instead pushed to the device separately by `dotnet build -t:Run`
+	     (or the IDE's deploy step). Since our workflow here is `dotnet build` + manual `adb install`,
+	     that push never happens and the app aborts at startup with "No assemblies found ...
+	     Assuming this is part of Fast Deployment". Embedding the assemblies into the .apk makes
+	     Debug builds self-contained and installable via plain `adb install`. -->
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
