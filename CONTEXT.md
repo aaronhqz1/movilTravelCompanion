@@ -103,21 +103,28 @@ Response: { message, homeLatitude, homeLongitude }
 movilTravelCompanion.sln
 ├── movilTravelCompanion/              (proyecto MAUI, target: net10.0-android)
 │   ├── Views/
-│   │   ├── HomePage.xaml
 │   │   ├── LoginPage.xaml
 │   │   ├── RegisterPage.xaml
-│   │   └── DashboardPage.xaml
+│   │   ├── RegistrationSuccessPage.xaml
+│   │   ├── TravelDestinationPage.xaml
+│   │   ├── DashboardPage.xaml
+│   │   └── HomePage.xaml               (pendiente)
 │   ├── ViewModels/
-│   │   ├── HomeViewModel.cs
 │   │   ├── LoginViewModel.cs
 │   │   ├── RegisterViewModel.cs
-│   │   └── DashboardViewModel.cs
+│   │   ├── RegistrationSuccessViewModel.cs
+│   │   ├── TravelDestinationViewModel.cs
+│   │   ├── DashboardViewModel.cs
+│   │   └── HomeViewModel.cs            (pendiente)
+│   ├── Services/
+│   │   └── PreferencesSessionStore.cs  (implementación de ISessionStore con Preferences; vive acá y no en Core porque necesita el workload de plataforma)
 │   ├── Controls/
-│   │   └── WeatherCardView.xaml
+│   │   └── WeatherCardView.xaml        (pendiente)
+│   ├── AppShell.xaml / AppShell.xaml.cs
 │   ├── Platforms/
 │   ├── Resources/
 │   └── MauiProgram.cs
-├── movilTravelCompanion.Core/         (librería .NET, lógica de negocio y servicios)
+├── movilTravelCompanion.Core/         (librería .NET pura net10.0, lógica de negocio y servicios)
 │   ├── Models/
 │   │   ├── User.cs
 │   │   ├── WeatherData.cs
@@ -126,9 +133,10 @@ movilTravelCompanion.sln
 │   ├── Services/
 │   │   ├── IAuthService.cs / AuthService.cs
 │   │   ├── IWeatherApiService.cs / WeatherApiService.cs
-│   │   └── IHistoryService.cs / HistoryService.cs
+│   │   ├── IHistoryService.cs / HistoryService.cs
+│   │   └── ISessionStore.cs            (solo la interfaz; la implementación está en el proyecto MAUI)
 │   └── movilTravelCompanion.Core.csproj
-└── movilTravelCompanion.Tests/        (tests unitarios de Core)
+└── movilTravelCompanion.Tests/        (tests unitarios de Core — aún no creado)
 ```
 
 ## Decisiones ya tomadas
@@ -150,16 +158,36 @@ Sin experiencia previa en C#/OOP. Se requiere explicación de conceptos nuevos a
 - [x] Implementar `WeatherApiService` (HttpClient consumiendo el backend Express)
 - [x] Implementar `AuthService`
 - [x] Configurar inyección de dependencias en `MauiProgram.cs`
-- [x] Construir `LoginPage.xaml` + `LoginViewModel` (confirmado corriendo el `.apk` manualmente vía `adb install` en el emulador Pixel 10a API 37)
-- [ ] Construir Views + ViewModels restantes (Home, Register, RegistrationSuccess, TravelDestination, Dashboard)
-- [ ] Implementar manejo de sesión con `Preferences`/`SecureStorage`
-- [ ] Configurar navegación (Shell) entre páginas
-- [ ] Probar en emulador Android
+- [x] Construir `LoginPage.xaml` + `LoginViewModel`
+- [x] Construir `RegisterPage.xaml` + `RegisterViewModel` (con validación client-side de contraseñas)
+- [x] Construir `RegistrationSuccessPage.xaml` + `RegistrationSuccessViewModel` (recibe `Username` por query parameter de Shell)
+- [x] Configurar navegación real con Shell: `AppShell` como raíz de la app (ya no hay hack de mostrar `LoginPage` directo desde `App.xaml.cs`), rutas registradas para `RegisterPage` y `RegistrationSuccessPage`, navegación con `Shell.Current.GoToAsync(...)`
+- [x] Confirmado corriendo en el emulador Pixel 10a API 37: la app abre sin crashear, Login → Register navega correctamente (probado con `adb` + capturas de pantalla)
+- [x] Implementar `IHistoryService`/`HistoryService` en Core (POST /api/history, GET /api/history/:userId/recent)
+- [x] Implementar manejo de sesión: `ISessionStore` (interfaz, en Core) + `PreferencesSessionStore` (implementación con `Preferences`, en el proyecto MAUI — Core no puede usar `Preferences` directo porque apunta a `net10.0` puro, sin el workload de plataforma)
+- [x] Construir `TravelDestinationPage.xaml` + `TravelDestinationViewModel` (busca ciudad con `IWeatherApiService`, guarda destino elegido en la sesión, navega a Dashboard)
+- [x] Construir `DashboardPage.xaml` + `DashboardViewModel` (clima del destino al entrar, búsqueda de otra ciudad que se guarda en historial, últimas 3 búsquedas en `CollectionView`, cerrar sesión)
+- [x] `LoginViewModel` ahora guarda la sesión al loguearse y navega a `TravelDestinationPage` (ruta absoluta `"//..."`, resetea la pila de Shell)
+- [ ] Construir `HomePage`/`HomeViewModel` (clima de ciudad aleatoria sin login — no forma parte del flujo login→dashboard, quedó afuera de esta tanda)
+- [ ] **Sin verificar en runtime con datos reales**: el flujo completo Login → TravelDestination → Dashboard nunca se probó con el backend Express corriendo (no estaba levantado en esta sesión). Falta confirmar con `npm start` en el repo `WeatherApp` corriendo en la PC.
 - [ ] Probar en dispositivo físico Android
 
 ## Notas técnicas / troubleshooting
-- **`dotnet build -t:Run` falla con MSB3072/MSB6011** en este entorno (causa aún no confirmada). Alternativa que sí funciona: compilar con `dotnet build`, ubicar el `.apk` generado en `movilTravelCompanion/bin/Debug/net10.0-android/`, e instalarlo manualmente con `adb install -r <path-al-Signed.apk>`.
-- **`launch.json` / `tasks.json`** requirieron configuración manual — F5 daba "No launchable projects found" porque a `launch.json` le faltaba la propiedad `"project"` apuntando al `.csproj` específico del proyecto MAUI (hay 2 proyectos en el workspace) y `tasks.json` no existía (el `preLaunchTask: "maui: Build"` no resolvía a ninguna tarea real). Ya quedaron corregidos ambos archivos, pero **F5 aún no se confirmó funcionando de punta a punta** — pendiente de probar en la próxima sesión.
+
+### Crash "StaticResource not found for key Headline" al abrir la app — RESUELTO
+Tenía dos causas superpuestas:
+1. **Orden de inicialización de DI**: `App.xaml.cs` originalmente pedía `LoginPage` como parámetro del constructor (`public App(LoginPage loginPage)`), lo que forzaba a construir `LoginPage` (y su XAML, que busca `StaticResource Headline`) *antes* de que `InitializeComponent()` de `App` cargara `Application.Resources`. Fix: inyectar `IServiceProvider` en el constructor y resolver la página recién dentro de `CreateWindow(...)`, que corre después de `InitializeComponent()`.
+2. **Assemblies viejos en el dispositivo (la causa que hacía que el fix de arriba "no se viera aplicado")**: los builds Debug de .NET para Android usan *Fast Deployment*: el `.apk` no lleva los `.dll` embebidos, se esperan empujar aparte al dispositivo (vía `dotnet build -t:Run` o el deploy del IDE) a una carpeta `.__override__` en los datos privados de la app. Como el flujo de trabajo era `dotnet build` + `adb install` manual, esa carpeta nunca se actualizaba y la app seguía cargando código viejo (o, tras un `adb uninstall`, fallaba directamente con `No assemblies found ... Assuming this is part of Fast Deployment`). Fix: se agregó `<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>` condicionado a `Configuration=Debug` en `movilTravelCompanion.csproj`, para que el `.apk` de Debug sea autocontenido y `adb install` alcance por sí solo (el `.apk` pasó de ~12MB a ~85MB, confirmando que ahora sí embebe los ensamblados).
+- **Importante para el futuro**: si se vuelve a ver comportamiento "viejo" pese a haber compilado de nuevo, sospechar primero de la carpeta `.__override__` desactualizada — un `adb uninstall <package>` antes de reinstalar la limpia (borra los datos privados de la app).
+
+### F5 en VS Code — diagnóstico parcial, no resuelto del todo
+- `.vs/ProjectSettings.json` tiene `"CurrentProjectSetting": null` — el "Startup Project" nunca quedó persistido pese a haber usado "Set as Startup Project" en el Solution Explorer de C# Dev Kit. Esto es consistente con el error "Debugging canceled: startup project not found": versiones recientes de la extensión `ms-dotnettools.dotnet-maui` parecen depender del proyecto de inicio que gestiona C# Dev Kit (visible en Solution Explorer) más que de la propiedad `"project"` de `launch.json` (que ya está bien configurada).
+- **Se confirmó que el toolchain de build/deploy en sí funciona**: `dotnet build movilTravelCompanion/movilTravelCompanion.csproj -t:Run -f:net10.0-android` corrió limpio (0 errores) y desplegó+abrió la app en el emulador — contradice la nota anterior de que `-t:Run` fallaba con MSB3072/MSB6011 (probablemente asociado al mismo problema de ensamblados/build incremental corrupto que ya se resolvió arriba). O sea: el bloqueo de F5 es puntualmente de integración VS Code ↔ C# Dev Kit, no del build.
+- JDK detectado: Microsoft OpenJDK 17.0.20 (`C:\Program Files\Microsoft\jdk-17.0.20.8-hotspot`) — es el JDK recomendado para el workload Android de .NET, el warning de versión visto en el panel de output probablemente no es la causa raíz.
+- **Pendiente (requiere interacción manual en la UI de VS Code, no se puede automatizar desde la terminal)**: en el panel Solution Explorer (ícono de C# Dev Kit), clic derecho sobre `movilTravelCompanion` (NO `.Core`) → "Set as Startup Project", confirmar que quede marcado en negrita/con ícono distintivo, y si no persiste, probar "Developer: Reload Window" después de marcarlo y recién ahí F5.
+- Mientras tanto, el flujo `dotnet build ... -f:net10.0-android` + `adb install -r <Signed.apk>` (o incluso `-t:Run` directo, que ahora sí funciona) sigue siendo válido.
 
 ## Siguiente paso concreto
-Confirmar que F5 (VS Code, con `launch.json`/`tasks.json` ya corregidos) funciona de punta a punta. Si funciona, continuar con `RegisterPage` y `TravelDestinationPage`. Si no, seguir usando el flujo manual de `adb install` mientras se avanza en paralelo con las siguientes páginas.
+1. Levantar el backend Express (`npm start` en el repo `WeatherApp`, en la PC) y probar el flujo completo de punta a punta en el emulador: Login → TravelDestination → Dashboard (buscar ciudad, ver que se guarde en el historial, cerrar sesión). Es el primer test con datos reales de todo lo construido en esta sesión.
+2. Construir `HomePage`/`HomeViewModel` (clima de ciudad aleatoria, pantalla para usuario no logueado).
+3. Terminar de confirmar F5 en VS Code siguiendo los pasos manuales documentados arriba (clic derecho → "Set as Startup Project" en Solution Explorer de C# Dev Kit).
