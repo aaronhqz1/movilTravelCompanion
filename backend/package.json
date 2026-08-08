@@ -1,0 +1,21 @@
+{
+  "name": "weather-app-backend",
+  "version": "1.0.0",
+  "description": "Backend para aplicación de consulta de clima",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "keywords": ["weather", "api", "express", "sqlite"],
+  "author": "Aaron Henriquez Leiva",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "openai": "^4.20.1",
+    "dotenv": "^16.3.1"
+  }
+}
