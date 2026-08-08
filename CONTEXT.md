@@ -175,7 +175,9 @@ Sin experiencia previa en C#/OOP. Se requiere explicación de conceptos nuevos a
 - [x] Construir `DashboardPage.xaml` + `DashboardViewModel` (clima del destino al entrar, búsqueda de otra ciudad que se guarda en historial, últimas 3 búsquedas en `CollectionView`, cerrar sesión)
 - [x] `LoginViewModel` ahora guarda la sesión al loguearse y navega a `TravelDestinationPage` (ruta absoluta `"//..."`, resetea la pila de Shell)
 - [ ] Construir `HomePage`/`HomeViewModel` (clima de ciudad aleatoria sin login — no forma parte del flujo login→dashboard, quedó afuera de esta tanda)
-- [ ] **Sin verificar en runtime con datos reales**: el flujo completo Login → TravelDestination → Dashboard nunca se probó con el backend Express corriendo (no estaba levantado en esta sesión). Falta confirmar con `npm start` en el repo `WeatherApp` corriendo en la PC.
+- [x] **Verificado en runtime con datos reales y con el backend corriendo**: flujo completo Register → Login → TravelDestination (buscar Madrid) → Dashboard (buscar París, se guarda en historial) → Cerrar sesión, probado a mano en el emulador Pixel 10a API 37 con `adb`. Requirió corregir dos bugs, ver detalle en "Notas técnicas / troubleshooting" abajo:
+  - `android:usesCleartextTraffic="true"` faltante en `AndroidManifest.xml` (causaba "Connection failure" en toda llamada HTTP)
+  - Navegación absoluta (`"//"`) rota hacia rutas globales de Shell (`TravelDestinationPage`, `DashboardPage`)
 - [ ] Probar en dispositivo físico Android
 
 ## Notas técnicas / troubleshooting
@@ -193,7 +195,21 @@ Tenía dos causas superpuestas:
 - **Pendiente (requiere interacción manual en la UI de VS Code, no se puede automatizar desde la terminal)**: en el panel Solution Explorer (ícono de C# Dev Kit), clic derecho sobre `movilTravelCompanion` (NO `.Core`) → "Set as Startup Project", confirmar que quede marcado en negrita/con ícono distintivo, y si no persiste, probar "Developer: Reload Window" después de marcarlo y recién ahí F5.
 - Mientras tanto, el flujo `dotnet build ... -f:net10.0-android` + `adb install -r <Signed.apk>` (o incluso `-t:Run` directo, que ahora sí funciona) sigue siendo válido.
 
+### "Connection failure" en Register/Login pese a que `ApiConfig.BaseUrl` apunta bien a `10.0.2.2:3000` — RESUELTO
+- Causa: no existía `network_security_config` ni `android:usesCleartextTraffic` en `AndroidManifest.xml`. Desde Android 9 (API 28) el tráfico HTTP sin cifrar se bloquea por defecto a nivel de SO, y el proyecto apunta a `target_sdk_version=36` — muy por encima de ese límite —, así que la conexión se descartaba antes de llegar al backend.
+- Fix: agregado `android:usesCleartextTraffic="true"` al `<application>` de `movilTravelCompanion/Platforms/Android/AndroidManifest.xml`.
+- Nota de la sesión: al aplicar el fix quedó un `<application>` duplicado en el manifest (dos elementos `<application>`, uno sin el atributo y otro con él) — XML inválido que hubiera roto el build. Se corrigió dejando un solo `<application>` con `usesCleartextTraffic="true"`.
+- Verificado en runtime: antes del fix, Register tiraba "Connection failure" a nivel de SO; después del fix, el POST llegó al backend real (primero devolvió 400 por validación de contraseña, después 200 con "¡Cuenta creada!").
+
+### Navegación con ruta absoluta ("//") rota hacia `TravelDestinationPage` y `DashboardPage` — RESUELTO
+- Síntoma: tras un login exitoso contra el backend (sin error de conexión ni de credenciales), la app quedaba trabada en `LoginPage` con el error en pantalla: *"Global routes currently cannot be the only page on the stack, so absolute routing to global routes is not supported."*
+- Causa: en `AppShell.xaml`, el único `ShellContent` real es `LoginPage`; `RegisterPage`, `RegistrationSuccessPage`, `TravelDestinationPage` y `DashboardPage` se registran como rutas "sueltas" (`Routing.RegisterRoute` en `AppShell.xaml.cs`), no como `ShellContent`. MAUI Shell no permite navegación absoluta (`"//" + ruta`) hacia una ruta de ese tipo cuando quedaría como única página en la pila.
+- Fix: en `LoginViewModel.cs` (línea ~48) y `TravelDestinationViewModel.cs` (línea ~94), se cambió `Shell.Current.GoToAsync("//" + nameof(Pagina))` por `Shell.Current.GoToAsync(nameof(Pagina))` (push relativo en vez de ruta absoluta). Efecto secundario conocido y aceptado por ahora: el botón "atrás" del dispositivo puede volver a la pantalla anterior (Login o TravelDestination) en vez de cerrar la app directamente.
+- Los `GoToAsync("//" + nameof(LoginPage))` usados en logout (`DashboardViewModel.cs`, `TravelDestinationViewModel.cs`, `RegistrationSuccessViewModel.cs`) **no** se tocaron porque `LoginPage` sí es el `ShellContent` real — se probó "Cerrar sesión" en el emulador y funciona sin problema.
+- Verificado en runtime: flujo completo Login → TravelDestination (buscar Madrid, confirmar) → Dashboard (ver clima de Madrid, buscar París, aparece en historial) → Cerrar sesión (vuelve a Login), probado a mano con `adb` en el emulador Pixel 10a API 37.
+
 ## Siguiente paso concreto
-1. Levantar el backend Express (`npm start` en el repo `WeatherApp`, en la PC) y probar el flujo completo de punta a punta en el emulador: Login → TravelDestination → Dashboard (buscar ciudad, ver que se guarde en el historial, cerrar sesión). Es el primer test con datos reales de todo lo construido en esta sesión.
-2. Construir `HomePage`/`HomeViewModel` (clima de ciudad aleatoria, pantalla para usuario no logueado).
-3. Terminar de confirmar F5 en VS Code siguiendo los pasos manuales documentados arriba (clic derecho → "Set as Startup Project" en Solution Explorer de C# Dev Kit).
+1. Construir `HomePage`/`HomeViewModel` (clima de ciudad aleatoria, pantalla para usuario no logueado).
+2. Terminar de confirmar F5 en VS Code siguiendo los pasos manuales documentados arriba (clic derecho → "Set as Startup Project" en Solution Explorer de C# Dev Kit).
+3. Decidir si el efecto secundario del fix de routing (botón "atrás" volviendo a Login/TravelDestination tras avanzar) necesita resolverse mejor (por ejemplo, limpiando el stack de navegación manualmente o declarando esas páginas como `ShellContent`), o si se deja así para v1.
+4. Probar en dispositivo físico Android.

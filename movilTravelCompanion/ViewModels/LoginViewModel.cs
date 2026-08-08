@@ -41,11 +41,14 @@ public partial class LoginViewModel : ObservableObject
 
             _sessionStore.SaveUser(user);
 
-            // Ruta absoluta ("//"): reemplaza toda la pila de Shell para que, tras loguearse,
-            // el boton "atras" no vuelva a la pantalla de login.
+            // Push relativo (no "//"): TravelDestinationPage es una ruta global
+            // (Routing.RegisterRoute en AppShell.xaml.cs), no un ShellContent, y Shell
+            // no permite navegacion absoluta a una ruta global si queda como unica
+            // pagina en la pila ("Global routes currently cannot be the only page on
+            // the stack"). Con push simple el boton "atras" si vuelve a Login por ahora.
             // Siguiendo el flujo real de App.jsx: tras login SIEMPRE se pasa por
             // TravelDestination antes de llegar al Dashboard.
-            await Shell.Current.GoToAsync("//" + nameof(Views.TravelDestinationPage));
+            await Shell.Current.GoToAsync(nameof(Views.TravelDestinationPage));
         }
         catch (Exception ex)
         {

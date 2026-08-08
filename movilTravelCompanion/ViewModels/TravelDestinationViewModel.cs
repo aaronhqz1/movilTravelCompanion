@@ -89,8 +89,11 @@ public partial class TravelDestinationViewModel : ObservableObject
         user.DestinationLongitude = _searchResult.Longitude;
         _sessionStore.SaveUser(user);
 
-        // Ruta absoluta ("//") en vez de push: reemplaza toda la pila de navegacion,
-        // asi el boton "atras" no vuelve a Login ni a TravelDestination una vez en el Dashboard.
-        await Shell.Current.GoToAsync("//" + nameof(Views.DashboardPage));
+        // Push relativo (no "//"): DashboardPage es una ruta global (Routing.RegisterRoute
+        // en AppShell.xaml.cs), no un ShellContent, y Shell no permite navegacion absoluta
+        // a una ruta global si queda como unica pagina en la pila ("Global routes currently
+        // cannot be the only page on the stack"). Con push simple el boton "atras" si
+        // vuelve a TravelDestination/Login por ahora.
+        await Shell.Current.GoToAsync(nameof(Views.DashboardPage));
     }
 }
