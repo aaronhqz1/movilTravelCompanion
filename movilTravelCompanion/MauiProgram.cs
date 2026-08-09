@@ -24,6 +24,8 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IWeatherApiService, WeatherApiService>();
 		builder.Services.AddSingleton<IAuthService, AuthService>();
 		builder.Services.AddSingleton<IHistoryService, HistoryService>();
+		builder.Services.AddSingleton<IPreferencesService, PreferencesService>();
+		builder.Services.AddSingleton<IClothingService, ClothingService>();
 		builder.Services.AddSingleton<ISessionStore, PreferencesSessionStore>();
 
 		builder.Services.AddTransient<AppShell>();
