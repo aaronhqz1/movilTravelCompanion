@@ -30,6 +30,7 @@ public partial class AppShell : Shell
 	{
 		FlyoutIsPresented = false;
 		await Current.GoToAsync(nameof(DashboardPage));
+		ShellNavigationHelper.TrimNavigationStack();
 	}
 
 	[RelayCommand]
@@ -37,6 +38,7 @@ public partial class AppShell : Shell
 	{
 		FlyoutIsPresented = false;
 		await Current.GoToAsync(nameof(TravelDestinationPage));
+		ShellNavigationHelper.TrimNavigationStack();
 	}
 
 	[RelayCommand]
@@ -44,6 +46,7 @@ public partial class AppShell : Shell
 	{
 		FlyoutIsPresented = false;
 		await Current.GoToAsync(nameof(PreferencesPage));
+		ShellNavigationHelper.TrimNavigationStack();
 	}
 
 	[RelayCommand]

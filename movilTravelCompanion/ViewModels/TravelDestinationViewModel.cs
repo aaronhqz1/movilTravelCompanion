@@ -94,8 +94,14 @@ public partial class TravelDestinationViewModel : ObservableObject
         // Push relativo (no "//"): DashboardPage es una ruta global (Routing.RegisterRoute
         // en AppShell.xaml.cs), no un ShellContent, y Shell no permite navegacion absoluta
         // a una ruta global si queda como unica pagina en la pila ("Global routes currently
-        // cannot be the only page on the stack"). Con push simple el boton "atras" si
-        // vuelve a TravelDestination/Login por ahora.
+        // cannot be the only page on the stack").
         await Shell.Current.GoToAsync(nameof(Views.DashboardPage));
+
+        // Sin esto, cada vez que se llega aca desde el Flyout ("Cambiar Destino" con
+        // sesion ya iniciada) se apilan TravelDestination+Dashboard nuevos sin sacar
+        // los anteriores, y la pila crece sin limite. Se deja solo Home (raiz) + este
+        // Dashboard; efecto secundario: el boton "atras" ahora vuelve directo a Home
+        // en vez de a TravelDestination/Login.
+        ShellNavigationHelper.TrimNavigationStack();
     }
 }
