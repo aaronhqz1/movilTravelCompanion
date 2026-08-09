@@ -23,13 +23,6 @@
                 Style="{StaticResource Headline}"
                 SemanticProperties.HeadingLevel="Level1" />
 
-            <Button
-                Text="Cerrar sesión"
-                Command="{Binding LogoutCommand}"
-                BackgroundColor="Transparent"
-                TextColor="{StaticResource Primary}"
-                HorizontalOptions="Center" />
-
             <ActivityIndicator
                 IsRunning="{Binding IsLoading}"
                 IsVisible="{Binding IsLoading}" />

@@ -112,13 +112,6 @@ public partial class DashboardViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private async Task LogoutAsync()
-    {
-        _sessionStore.ClearUser();
-        await Shell.Current.GoToAsync("//" + nameof(Views.HomePage));
-    }
-
     private async Task ReloadHistoryAsync()
     {
         if (_currentUser is null)
