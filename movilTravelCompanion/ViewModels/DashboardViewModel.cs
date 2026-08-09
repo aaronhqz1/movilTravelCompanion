@@ -11,6 +11,7 @@ public partial class DashboardViewModel : ObservableObject
     private readonly IWeatherApiService _weatherApiService;
     private readonly IHistoryService _historyService;
     private readonly IClothingService _clothingService;
+    private readonly IPreferencesService _preferencesService;
     private readonly ISessionStore _sessionStore;
 
     private User? _currentUser;
@@ -56,11 +57,13 @@ public partial class DashboardViewModel : ObservableObject
         IWeatherApiService weatherApiService,
         IHistoryService historyService,
         IClothingService clothingService,
+        IPreferencesService preferencesService,
         ISessionStore sessionStore)
     {
         _weatherApiService = weatherApiService;
         _historyService = historyService;
         _clothingService = clothingService;
+        _preferencesService = preferencesService;
         _sessionStore = sessionStore;
     }
 
@@ -101,6 +104,21 @@ public partial class DashboardViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+
+        // Precarga del estilo de vestimenta y sensibilidad al frio/calor desde
+        // Preferencias. Falla en silencio (no pisa ErrorMessage): si esto no
+        // carga, la seccion de vestimenta sigue funcionando con los defaults
+        // ("casual" / sin sensibilidad) en vez de bloquear el resto del Dashboard.
+        try
+        {
+            var preferences = await _preferencesService.GetPreferencesAsync(_currentUser.UserId);
+            SelectedClothingStyle = preferences.DefaultClothingStyle;
+            _coldSensitivity = preferences.ColdSensitivity;
+        }
+        catch
+        {
+            // Defaults ya seteados en las propiedades; no hay nada mas que hacer aca.
         }
     }
 
