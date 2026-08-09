@@ -57,9 +57,12 @@ const getClothingRecommendation = async (req, res) => {
     });
   }
 
-  // Validar sensibilidad al frio/calor (opcional, mantiene compatibilidad si no viene)
+  // Validar sensibilidad al frio/calor (opcional, mantiene compatibilidad si no viene).
+  // Se usa != en vez de !== para tratar null igual que undefined: clientes JSON
+  // (como System.Text.Json en el cliente MAUI) suelen serializar una propiedad
+  // ausente como "coldSensitivity": null en vez de omitir la clave.
   const validSensitivities = ['friolento', 'normal', 'caluroso'];
-  if (coldSensitivity !== undefined && !validSensitivities.includes(coldSensitivity)) {
+  if (coldSensitivity != null && !validSensitivities.includes(coldSensitivity)) {
     return res.status(400).json({
       error: 'Sensibilidad al frío inválida. Opciones: friolento, normal, caluroso'
     });
