@@ -2,12 +2,21 @@ using movilTravelCompanion.ViewModels;
 
 namespace movilTravelCompanion.Views;
 
-public partial class TravelDestinationPage : ContentPage
+public partial class PreferencesPage : ContentPage
 {
-    public TravelDestinationPage(TravelDestinationViewModel viewModel)
+    private readonly PreferencesViewModel _viewModel;
+
+    public PreferencesPage(PreferencesViewModel viewModel)
     {
         InitializeComponent();
+        _viewModel = viewModel;
         BindingContext = viewModel;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await _viewModel.LoadAsync();
     }
 
     // Ver comentario en DashboardPage.xaml.cs: el icono de hamburguesa automatico

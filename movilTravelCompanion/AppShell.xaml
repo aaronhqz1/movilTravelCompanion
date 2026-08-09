@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:movilTravelCompanion.Views"
     Title="movilTravelCompanion"
-    FlyoutBehavior="Disabled"
+    FlyoutBehavior="Flyout"
     Shell.NavBarIsVisible="False">
 
     <!--
@@ -19,5 +19,20 @@
     <ShellContent
         ContentTemplate="{DataTemplate views:HomePage}"
         Route="HomePage" />
+
+    <!--
+    MenuItem (no FlyoutItem): estas 4 entradas navegan con push relativo
+    (Shell.Current.GoToAsync(nameof(Pagina))), el mismo patron que ya usa
+    toda la app. Un FlyoutItem real requeriria que cada pagina fuera su
+    propio ShellContent con ruta absoluta, lo que chocaria con las rutas
+    "sueltas" (Routing.RegisterRoute) que Login/TravelDestination ya usan
+    para llegar a estas mismas paginas por push. El Flyout esta deshabilitado
+    explicitamente en Home/Login/Register/RegistrationSuccess (ver esas
+    paginas), asi que estos items solo son alcanzables con sesion iniciada.
+    -->
+    <MenuItem Text="Viaje Actual" Command="{Binding GoToDashboardCommand}" />
+    <MenuItem Text="Cambiar Destino" Command="{Binding GoToTravelDestinationCommand}" />
+    <MenuItem Text="Preferencias" Command="{Binding GoToPreferencesCommand}" />
+    <MenuItem Text="Cerrar Sesión" Command="{Binding LogoutCommand}" />
 
 </Shell>
