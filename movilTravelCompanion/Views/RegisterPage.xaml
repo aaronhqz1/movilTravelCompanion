@@ -4,6 +4,7 @@
              xmlns:viewmodels="clr-namespace:movilTravelCompanion.ViewModels"
              x:Class="movilTravelCompanion.Views.RegisterPage"
              x:DataType="viewmodels:RegisterViewModel"
+             Shell.FlyoutBehavior="Disabled"
              Title="Crear Cuenta">
 
     <ScrollView>

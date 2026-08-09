@@ -1,13 +1,10 @@
-using movilTravelCompanion.ViewModels;
-
 namespace movilTravelCompanion.Views;
 
-public partial class TravelDestinationPage : ContentPage
+public partial class PreferencesPage : ContentPage
 {
-    public TravelDestinationPage(TravelDestinationViewModel viewModel)
+    public PreferencesPage()
     {
         InitializeComponent();
-        BindingContext = viewModel;
     }
 
     // Ver comentario en DashboardPage.xaml.cs: el icono de hamburguesa automatico

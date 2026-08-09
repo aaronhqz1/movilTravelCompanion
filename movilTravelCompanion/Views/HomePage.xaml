@@ -5,6 +5,7 @@
              xmlns:controls="clr-namespace:movilTravelCompanion.Controls"
              x:Class="movilTravelCompanion.Views.HomePage"
              x:DataType="viewmodels:HomeViewModel"
+             Shell.FlyoutBehavior="Disabled"
              Title="movilTravelCompanion">
 
     <ScrollView>

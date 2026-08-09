@@ -6,7 +6,12 @@
              xmlns:controls="clr-namespace:movilTravelCompanion.Controls"
              x:Class="movilTravelCompanion.Views.DashboardPage"
              x:DataType="viewmodels:DashboardViewModel"
+             Shell.NavBarIsVisible="True"
              Title="Panel">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Menú" Clicked="OnMenuClicked" />
+    </ContentPage.ToolbarItems>
 
     <ScrollView>
         <VerticalStackLayout

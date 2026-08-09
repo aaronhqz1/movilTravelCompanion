@@ -48,6 +48,8 @@ public static class MauiProgram
 		builder.Services.AddTransient<DashboardViewModel>();
 		builder.Services.AddTransient<DashboardPage>();
 
+		builder.Services.AddTransient<PreferencesPage>();
+
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif
