@@ -38,6 +38,33 @@
                 DetailsText="{Binding DestinationDetails}"
                 ShowDetails="True" />
 
+            <!-- Sugerencias de vestimenta para el clima del destino -->
+            <Label Text="Sugerencia de vestimenta" Style="{StaticResource SubHeadline}" />
+
+            <VerticalStackLayout
+                Spacing="5"
+                RadioButtonGroup.GroupName="DashboardClothingStyle"
+                RadioButtonGroup.SelectedValue="{Binding SelectedClothingStyle}">
+                <RadioButton Content="Casual" Value="casual" />
+                <RadioButton Content="Formal" Value="formal" />
+                <RadioButton Content="Deportivo" Value="deportivo" />
+            </VerticalStackLayout>
+
+            <Button
+                Text="Obtener Recomendación de Vestimenta"
+                Command="{Binding GetClothingRecommendationCommand}"
+                HorizontalOptions="Fill" />
+
+            <ActivityIndicator
+                IsRunning="{Binding IsLoadingClothing}"
+                IsVisible="{Binding IsLoadingClothing}" />
+
+            <Label
+                Text="{Binding ClothingErrorMessage}"
+                TextColor="Red" />
+
+            <Label Text="{Binding ClothingRecommendationText}" />
+
             <!-- Buscar el clima de otra ciudad (se guarda en el historial) -->
             <Entry
                 Placeholder="Buscar clima de otra ciudad"

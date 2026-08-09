@@ -10,9 +10,12 @@ public partial class DashboardViewModel : ObservableObject
 {
     private readonly IWeatherApiService _weatherApiService;
     private readonly IHistoryService _historyService;
+    private readonly IClothingService _clothingService;
     private readonly ISessionStore _sessionStore;
 
     private User? _currentUser;
+    private WeatherData? _destinationWeather;
+    private string? _coldSensitivity;
 
     [ObservableProperty]
     private string welcomeMessage = string.Empty;
@@ -35,12 +38,29 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty]
     private string errorMessage = string.Empty;
 
+    [ObservableProperty]
+    private string selectedClothingStyle = "casual";
+
+    [ObservableProperty]
+    private bool isLoadingClothing;
+
+    [ObservableProperty]
+    private string clothingErrorMessage = string.Empty;
+
+    [ObservableProperty]
+    private string clothingRecommendationText = string.Empty;
+
     public ObservableCollection<HistoryEntry> RecentHistory { get; } = [];
 
-    public DashboardViewModel(IWeatherApiService weatherApiService, IHistoryService historyService, ISessionStore sessionStore)
+    public DashboardViewModel(
+        IWeatherApiService weatherApiService,
+        IHistoryService historyService,
+        IClothingService clothingService,
+        ISessionStore sessionStore)
     {
         _weatherApiService = weatherApiService;
         _historyService = historyService;
+        _clothingService = clothingService;
         _sessionStore = sessionStore;
     }
 
@@ -112,6 +132,42 @@ public partial class DashboardViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private async Task GetClothingRecommendationAsync()
+    {
+        if (_destinationWeather is null)
+        {
+            ClothingErrorMessage = "Todavía no hay clima del destino cargado.";
+            return;
+        }
+
+        IsLoadingClothing = true;
+        ClothingErrorMessage = string.Empty;
+        ClothingRecommendationText = string.Empty;
+
+        try
+        {
+            var recommendation = await _clothingService.GetRecommendationAsync(
+                _destinationWeather.City ?? DestinationCity,
+                _destinationWeather.Temperature,
+                _destinationWeather.WeatherCode,
+                _destinationWeather.Humidity,
+                _destinationWeather.WindSpeed,
+                SelectedClothingStyle,
+                _coldSensitivity);
+
+            ClothingRecommendationText = recommendation.Recommendation;
+        }
+        catch (Exception ex)
+        {
+            ClothingErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoadingClothing = false;
+        }
+    }
+
     private async Task ReloadHistoryAsync()
     {
         if (_currentUser is null)
@@ -129,6 +185,7 @@ public partial class DashboardViewModel : ObservableObject
 
     private void ApplyDestinationWeather(WeatherData weather)
     {
+        _destinationWeather = weather;
         DestinationTemperature = $"{weather.Temperature:0.#} °C";
         DestinationDetails = $"Humedad {weather.Humidity:0.#}% · Viento {weather.WindSpeed:0.#} km/h";
     }
