@@ -4,6 +4,7 @@
              xmlns:viewmodels="clr-namespace:movilTravelCompanion.ViewModels"
              x:Class="movilTravelCompanion.Views.RegistrationSuccessPage"
              x:DataType="viewmodels:RegistrationSuccessViewModel"
+             Shell.FlyoutBehavior="Disabled"
              Title="¡Listo!">
 
     <VerticalStackLayout

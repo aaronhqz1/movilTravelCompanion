@@ -10,9 +10,13 @@ public partial class DashboardViewModel : ObservableObject
 {
     private readonly IWeatherApiService _weatherApiService;
     private readonly IHistoryService _historyService;
+    private readonly IClothingService _clothingService;
+    private readonly IPreferencesService _preferencesService;
     private readonly ISessionStore _sessionStore;
 
     private User? _currentUser;
+    private WeatherData? _destinationWeather;
+    private string? _coldSensitivity;
 
     [ObservableProperty]
     private string welcomeMessage = string.Empty;
@@ -35,12 +39,31 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty]
     private string errorMessage = string.Empty;
 
+    [ObservableProperty]
+    private string selectedClothingStyle = "casual";
+
+    [ObservableProperty]
+    private bool isLoadingClothing;
+
+    [ObservableProperty]
+    private string clothingErrorMessage = string.Empty;
+
+    [ObservableProperty]
+    private string clothingRecommendationText = string.Empty;
+
     public ObservableCollection<HistoryEntry> RecentHistory { get; } = [];
 
-    public DashboardViewModel(IWeatherApiService weatherApiService, IHistoryService historyService, ISessionStore sessionStore)
+    public DashboardViewModel(
+        IWeatherApiService weatherApiService,
+        IHistoryService historyService,
+        IClothingService clothingService,
+        IPreferencesService preferencesService,
+        ISessionStore sessionStore)
     {
         _weatherApiService = weatherApiService;
         _historyService = historyService;
+        _clothingService = clothingService;
+        _preferencesService = preferencesService;
         _sessionStore = sessionStore;
     }
 
@@ -82,6 +105,21 @@ public partial class DashboardViewModel : ObservableObject
         {
             IsLoading = false;
         }
+
+        // Precarga del estilo de vestimenta y sensibilidad al frio/calor desde
+        // Preferencias. Falla en silencio (no pisa ErrorMessage): si esto no
+        // carga, la seccion de vestimenta sigue funcionando con los defaults
+        // ("casual" / sin sensibilidad) en vez de bloquear el resto del Dashboard.
+        try
+        {
+            var preferences = await _preferencesService.GetPreferencesAsync(_currentUser.UserId);
+            SelectedClothingStyle = preferences.DefaultClothingStyle;
+            _coldSensitivity = preferences.ColdSensitivity;
+        }
+        catch
+        {
+            // Defaults ya seteados en las propiedades; no hay nada mas que hacer aca.
+        }
     }
 
     [RelayCommand]
@@ -113,10 +151,39 @@ public partial class DashboardViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task LogoutAsync()
+    private async Task GetClothingRecommendationAsync()
     {
-        _sessionStore.ClearUser();
-        await Shell.Current.GoToAsync("//" + nameof(Views.HomePage));
+        if (_destinationWeather is null)
+        {
+            ClothingErrorMessage = "Todavía no hay clima del destino cargado.";
+            return;
+        }
+
+        IsLoadingClothing = true;
+        ClothingErrorMessage = string.Empty;
+        ClothingRecommendationText = string.Empty;
+
+        try
+        {
+            var recommendation = await _clothingService.GetRecommendationAsync(
+                _destinationWeather.City ?? DestinationCity,
+                _destinationWeather.Temperature,
+                _destinationWeather.WeatherCode,
+                _destinationWeather.Humidity,
+                _destinationWeather.WindSpeed,
+                SelectedClothingStyle,
+                _coldSensitivity);
+
+            ClothingRecommendationText = recommendation.Recommendation;
+        }
+        catch (Exception ex)
+        {
+            ClothingErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoadingClothing = false;
+        }
     }
 
     private async Task ReloadHistoryAsync()
@@ -136,6 +203,7 @@ public partial class DashboardViewModel : ObservableObject
 
     private void ApplyDestinationWeather(WeatherData weather)
     {
+        _destinationWeather = weather;
         DestinationTemperature = $"{weather.Temperature:0.#} °C";
         DestinationDetails = $"Humedad {weather.Humidity:0.#}% · Viento {weather.WindSpeed:0.#} km/h";
     }

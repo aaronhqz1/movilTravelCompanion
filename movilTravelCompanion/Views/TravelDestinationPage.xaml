@@ -5,7 +5,12 @@
              xmlns:controls="clr-namespace:movilTravelCompanion.Controls"
              x:Class="movilTravelCompanion.Views.TravelDestinationPage"
              x:DataType="viewmodels:TravelDestinationViewModel"
+             Shell.NavBarIsVisible="True"
              Title="Destino de Viaje">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Menú" Clicked="OnMenuClicked" />
+    </ContentPage.ToolbarItems>
 
     <ScrollView>
         <VerticalStackLayout

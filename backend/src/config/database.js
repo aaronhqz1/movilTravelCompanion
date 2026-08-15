@@ -55,6 +55,22 @@ function initializeDatabase() {
         console.log('Tabla weather_history lista');
       }
     });
+
+    // Tabla de preferencias de usuario (estilo de vestimenta y sensibilidad al frio/calor)
+    db.run(`
+      CREATE TABLE IF NOT EXISTS user_preferences (
+        user_id INTEGER PRIMARY KEY,
+        default_clothing_style TEXT DEFAULT 'casual',
+        cold_sensitivity TEXT DEFAULT 'normal',
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `, (err) => {
+      if (err) {
+        console.error('Error al crear tabla user_preferences:', err);
+      } else {
+        console.log('Tabla user_preferences lista');
+      }
+    });
   });
 }
 

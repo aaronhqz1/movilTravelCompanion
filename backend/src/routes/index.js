@@ -3,6 +3,7 @@ const { register, login, updateHomeCity } = require('../controllers/authControll
 const { getRandomWeather, searchWeather, getWeatherByCoords, getCitiesList, getCitiesStats } = require('../controllers/weatherController');
 const { saveHistory, getRecentHistory, getAllHistory } = require('../controllers/historyController');
 const { getClothingRecommendation } = require('../controllers/openaiController');
+const { getPreferences, updatePreferences } = require('../controllers/preferencesController');
 
 const router = express.Router();
 
@@ -10,6 +11,10 @@ const router = express.Router();
 router.post('/auth/register', register);
 router.post('/auth/login', login);
 router.put('/user/:userId/home', updateHomeCity);
+
+// Rutas de preferencias de usuario
+router.get('/user/:userId/preferences', getPreferences);
+router.put('/user/:userId/preferences', updatePreferences);
 
 // Rutas de clima
 router.get('/weather/random', getRandomWeather);
