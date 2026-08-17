@@ -24,6 +24,20 @@ cd backend
 npm install
 ```
 
+## Configuración de OpenAI
+El backend usa la API de OpenAI para generar recomendaciones de vestimenta. Necesitás tu propia API key (no se comparte por el repo — `.env` está en `.gitignore` a propósito).
+
+1. Conseguí una API key en https://platform.openai.com/api-keys (o pedile a Aaron que te comparta una por un canal directo, fuera del repo).
+2. En el directorio `backend/`, creá un archivo llamado `.env`.
+3. Agregá dentro:
+
+```
+PORT=3000
+OPENAI_API_KEY=TU_API_KEY_AQUI
+```
+
+Reemplazá `TU_API_KEY_AQUI` con tu clave real. **Nunca subas este archivo al repo ni pegues la key en el README, un commit o un PR.**
+
 ## Cómo correr la app
 
 **1. Levantar el backend** (dejalo corriendo en su propia terminal):

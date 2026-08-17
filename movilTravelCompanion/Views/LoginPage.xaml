@@ -4,6 +4,7 @@
              xmlns:viewmodels="clr-namespace:movilTravelCompanion.ViewModels"
              x:Class="movilTravelCompanion.Views.LoginPage"
              x:DataType="viewmodels:LoginViewModel"
+             Shell.FlyoutBehavior="Disabled"
              Title="Iniciar Sesión">
 
     <ScrollView>

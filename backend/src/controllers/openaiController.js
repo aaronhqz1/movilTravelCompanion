@@ -38,30 +38,47 @@ function getWeatherDescription(code) {
 }
 
 const getClothingRecommendation = async (req, res) => {
-  const { city, temperature, weatherCode, humidity, windSpeed, clothingStyle } = req.body;
+  const { city, temperature, weatherCode, humidity, windSpeed, clothingStyle, coldSensitivity } = req.body;
 
   // Validar datos requeridos
   if (!city || temperature === undefined || weatherCode === undefined) {
-    return res.status(400).json({ 
-      error: 'Faltan datos requeridos: city, temperature, weatherCode' 
+    return res.status(400).json({
+      error: 'Faltan datos requeridos: city, temperature, weatherCode'
     });
   }
 
   // Validar estilo de vestimenta
-  const validStyles = ['formal', 'casual', 'athletic'];
+  const validStyles = ['formal', 'casual', 'deportivo'];
   const style = clothingStyle || 'casual';
-  
+
   if (!validStyles.includes(style.toLowerCase())) {
-    return res.status(400).json({ 
-      error: 'Estilo de vestimenta inválido. Opciones: formal, casual, athletic' 
+    return res.status(400).json({
+      error: 'Estilo de vestimenta inválido. Opciones: formal, casual, deportivo'
+    });
+  }
+
+  // Validar sensibilidad al frio/calor (opcional, mantiene compatibilidad si no viene).
+  // Se usa != en vez de !== para tratar null igual que undefined: clientes JSON
+  // (como System.Text.Json en el cliente MAUI) suelen serializar una propiedad
+  // ausente como "coldSensitivity": null en vez de omitir la clave.
+  const validSensitivities = ['friolento', 'normal', 'caluroso'];
+  if (coldSensitivity != null && !validSensitivities.includes(coldSensitivity)) {
+    return res.status(400).json({
+      error: 'Sensibilidad al frío inválida. Opciones: friolento, normal, caluroso'
     });
   }
 
   try {
     const weatherDescription = getWeatherDescription(weatherCode);
-    
+
+    const sensitivityInstruction = coldSensitivity === 'friolento'
+      ? '\nEl usuario es friolento: aunque la temperatura no lo amerite estrictamente, recomendá capas extra (campera, bufanda, etc.) para compensar.'
+      : coldSensitivity === 'caluroso'
+      ? '\nEl usuario es caluroso: aunque la temperatura sea fresca, recomendá prendas más livianas y transpirables para compensar.'
+      : '';
+
     // Crear prompt para OpenAI
-    const prompt = `Eres un asistente experto en moda y clima. 
+    const prompt = `Eres un asistente experto en moda y clima.
 
 Datos del clima en ${city}:
 - Temperatura: ${temperature}°C
@@ -70,6 +87,7 @@ Datos del clima en ${city}:
 - Velocidad del viento: ${windSpeed} km/h
 
 El usuario necesita recomendaciones de vestimenta estilo: ${style.toUpperCase()}
+${sensitivityInstruction}
 
 Por favor proporciona:
 1. Una breve descripción del clima (2-3 líneas)
@@ -85,7 +103,7 @@ Formato de respuesta:
 
 Para estilo FORMAL: trajes, sacos, vestidos elegantes, zapatos formales
 Para estilo CASUAL: jeans, camisetas, sudaderas, tenis
-Para estilo ATHLETIC: ropa deportiva, zapatillas running, ropa técnica`;
+Para estilo DEPORTIVO: ropa deportiva, zapatillas running, ropa técnica`;
 
     // Llamar a OpenAI API
     const completion = await openai.chat.completions.create({
@@ -116,6 +134,7 @@ Para estilo ATHLETIC: ropa deportiva, zapatillas running, ropa técnica`;
         windSpeed: windSpeed
       },
       clothingStyle: style,
+      coldSensitivity: coldSensitivity || 'normal',
       recommendation: recommendation,
       timestamp: new Date().toISOString()
     });
